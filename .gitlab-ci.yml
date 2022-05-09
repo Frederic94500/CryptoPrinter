@@ -1,0 +1,40 @@
+image: maven:3.8.5-jdk-11
+
+variables:
+  MAVEN_CLI_OPTS: "--batch-mode"
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository/
+
+stages:
+  - build
+  - test
+  - deploy
+
+build-job:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS $MAVEN_OPTS -DskipTests clean compile
+  artifacts:
+    expire_in: 5 min
+    paths:
+      - target/
+      - "*/target"
+
+test-job:
+  stage: test
+  script:
+    - find . -name "*.class" -exec touch {} \+
+    - mvn $MAVEN_CLI_OPTS $MAVEN_OPTS test
+
+deploy-job:
+  stage: deploy
+  script:
+    - find . -name "*.class" -exec touch {} \+
+    - mvn $MAVEN_CLI_OPTS $MAVEN_OPTS -DskipTests package
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - target/*.jar
