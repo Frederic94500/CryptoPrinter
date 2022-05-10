@@ -1,5 +1,7 @@
 package fr.frederic94500.cryptoprinter;
 
+import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -9,12 +11,10 @@ import java.net.http.HttpResponse;
 public class Crypto {
     private final HttpClient client;
     private final HttpRequest request;
-    private final String pair;
 
-    public Crypto(String url, String pair) {
+    public Crypto(String url) {
         this.client = HttpClient.newHttpClient();
-        this.request = HttpRequest.newBuilder(URI.create(url + pair)).header("accept", "*/*").build();
-        this.pair = pair;
+        this.request = HttpRequest.newBuilder(URI.create(url)).header("accept", "*/*").build();
     }
 
     public HttpResponse getResponse() throws IOException, InterruptedException {
@@ -31,8 +31,10 @@ public class Crypto {
 
     @Override
     public String toString() {
+        var gson = new Gson();
         try {
-            return String.valueOf(getResponse().body());
+            var responseJSON = gson.fromJson((String) getResponse().body(), Binance.class);
+            return responseJSON.toString();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
